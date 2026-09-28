@@ -30,7 +30,7 @@ namespace PontoTuristicoApp.Controllers
 
             if (!string.IsNullOrEmpty(busca))
             {
-                var termo = busca.Trim();
+                var termo = busca.Trim().ToLower();
 
                 // Busca lista de estados do IBGE para permitir buscar por Sigla ou Nome
                 var ibgeEstados = await _ibgeService.ObterEstadosAsync();
@@ -39,15 +39,21 @@ namespace PontoTuristicoApp.Controllers
                                 e.Sigla.Equals(termo, StringComparison.OrdinalIgnoreCase))
                     .SelectMany(e => new[] { e.Nome, e.Sigla })
                     .Distinct()
+                    .Select(t => t.ToLower())
                     .ToList();
 
                 query = query.Where(p =>
-                    p.Nome.Contains(termo) ||
-                    p.Cidade.Contains(termo) ||
-                    p.Estado.Contains(termo) ||
-                    termosEstado.Contains(p.Estado) ||
-                    p.Descricao.Contains(termo) ||
-                    p.Localizacao.Contains(termo));
+                    EF.Functions.Like(p.Nome, $"%{termo}%") ||
+                    EF.Functions.Like(p.Cidade, $"%{termo}%") ||
+                    EF.Functions.Like(p.Estado, $"%{termo}%") ||
+                    EF.Functions.Like(p.Descricao, $"%{termo}%") ||
+                    EF.Functions.Like(p.Localizacao, $"%{termo}%") ||
+                    p.Nome.ToLower().Contains(termo) ||
+                    p.Cidade.ToLower().Contains(termo) ||
+                    p.Estado.ToLower().Contains(termo) ||
+                    termosEstado.Contains(p.Estado.ToLower()) ||
+                    p.Descricao.ToLower().Contains(termo) ||
+                    p.Localizacao.ToLower().Contains(termo));
             }
 
             var totalItens = await query.CountAsync();
@@ -153,7 +159,7 @@ namespace PontoTuristicoApp.Controllers
                 Nome = model.Nome.Trim(),
                 Descricao = model.Descricao.Trim(),
                 Localizacao = model.Localizacao.Trim(),
-                Estado = estadoSelecionado.Nome,
+                Estado = estadoSelecionado.Sigla,
                 Cidade = model.Cidade.Trim(),
                 DataInclusao = DateTime.Now
             };

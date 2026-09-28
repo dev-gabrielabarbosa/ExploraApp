@@ -54,7 +54,7 @@
                             <div>
                                 <div class="small text-muted fw-semibold">Cidade & Estado</div>
                                 <div class="fw-bold" style="color: var(--grafite);">
-                                    @Model.Cidade — <span class="badge-state">@Model.Estado</span>
+                                    @Model.Cidade — <span class="badge-state">@PontoTuristicoApp.Helpers.EstadoHelper.ObterUf(Model.Estado)</span>
                                 </div>
                             </div>
                         </div>

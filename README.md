@@ -1,7 +1,6 @@
-# PontoTuristicoApp
+# ExploraApp
 
-Aplicação Web de cadastro e listagem de pontos turísticos do Brasil. 
-Desenvolvida como teste técnico para perfil de desenvolvedor júnior.
+Aplicação Web de cadastro e listagem de pontos turísticos do Brasil.
 
 ## Tecnologias utilizadas
 
@@ -14,7 +13,7 @@ Desenvolvida como teste técnico para perfil de desenvolvedor júnior.
 
 ## Decisões Técnicas
 
-- **Solução Monolítica:** Conforme solicitado, o frontend e o backend rodam no mesmo projeto, facilitando o entendimento e demonstrando domínio dos fundamentos web.
+- **Solução Monolítica:** O frontend e o backend rodam no mesmo projeto, facilitando o entendimento e a execução.
 - **Integração com IBGE:** A comunicação com a API do IBGE é centralizada na camada de serviço (`IbgeService`) utilizando `HttpClient` com injeção de dependência e cache em memória (`IMemoryCache`), prevenindo chamadas desnecessárias e garantindo performance e resiliência.
 - **SQLite:** Escolhido por não necessitar de instalação de um servidor SQL. O arquivo do banco (`pontosturisticos.db`) é criado localmente na pasta do projeto.
 - **Entity Framework Core:** Usado como ORM pela agilidade na implementação de consultas (`LINQ`) e fácil gerência do esquema do banco de dados.
@@ -40,7 +39,7 @@ A aplicação consome a API oficial de Localidades do IBGE para carregar dinamic
 
 ```bash
 git clone <url_do_repositorio>
-cd PontoTuristicoApp
+cd exploraApp
 ```
 
 ## Banco de dados
@@ -57,10 +56,10 @@ Pelo terminal, na pasta raiz do projeto:
 # 1. Restaura as dependências
 dotnet restore
 
-# 2. Executa a aplicação
+# 2. Compila e executa a aplicação
 dotnet run
 ```
-Após executar, acesse no navegador: `http://localhost:5000` (ou a porta listada no terminal).
+Após executar, acesse no navegador: `http://localhost:5000` (ou o endereço retornado no terminal).
 
 ## Funcionalidades
 
@@ -70,15 +69,20 @@ Após executar, acesse no navegador: `http://localhost:5000` (ou a porta listada
 - **Visualização de Detalhes:** Exibição completa das informações do ponto turístico.
 - **Tratamento de Erros e Resiliência:** Indicadores de carregamento, desabilitação temporária de campos e mensagens amigáveis em caso de falha da API externa.
 
-## Critérios de Aceite Atendidos
-- [x] Aplicação Web em C# e ASP.NET Core MVC (Monolítica)
-- [x] Estados carregados dinamicamente via API do IBGE
-- [x] Cidades carregadas dinamicamente com base no ID numérico do Estado
-- [x] Dropdown de Cidade inicialmente desabilitado e habilitado após seleção do Estado
-- [x] Ordenação alfabética das cidades via parâmetro `orderBy=nome`
-- [x] Tratamento de erros e mensagem amigável em caso de falha de comunicação
-- [x] Indicador visual de carregamento ("Carregando cidades...")
-- [x] Validação obrigatória de Estado e Cidade no frontend e backend
-- [x] SQLite configurado via Entity Framework Core
-- [x] Listagem, ordenação, busca e paginação mantidos e operacionais
-- [x] README atualizado com os endpoints e fluxo do IBGE
+## Requisitos do Teste Cumpridos
+
+### 📌 Requisitos Obrigatórios
+- [x] **Aplicação de Cadastro e Listagem de Pontos Turísticos:** Cadastro contendo Nome, Descrição (até 100 caracteres), Localização, Cidade e Estado.
+- [x] **Página Inicial (Listagem, Ordenação e Paginação):** Exibição paginada dos pontos turísticos com Nome e Localização, ordenados de forma decrescente pela Data de Inclusão.
+- [x] **Busca e Filtro:** Campo de busca funcional (case-insensitive) que filtra por Nome, Descrição, Localização, Cidade e Estado/UF.
+- [x] **Visualização de Detalhes:** Exibição completa das informações ao selecionar um ponto turístico (Nome, Descrição, Localização, Cidade e Estado/UF).
+- [x] **Formulário de Cadastro com Seleção Dinâmica:** Dropdown de Estados e busca assíncrona das Cidades correspondentes via webservice público da API do IBGE.
+- [x] **Menu de Navegação:** Navegação no cabeçalho da aplicação para alternar entre a listagem inicial e o formulário de cadastro.
+- [x] **Modelo de Solução Monolítica (Perfil Júnior):** Aplicação Web monolítica simples desenvolvida em C# e ASP.NET Core MVC.
+- [x] **Banco de Dados Relacional:** Utilização do SQLite configurado via Entity Framework Core com criação automática de tabelas (`EnsureCreated()`).
+- [x] **Controle de Versão com Git:** Histórico de commits mantido via Git.
+- [x] **Documentação em Markdown (README.md):** Arquivo README na raiz com instruções completas para clonar, compilar, configurar o banco e executar o projeto.
+
+### 🌟 Requisitos Opcionais (Diferenciais Cumpridos)
+- [x] **Conceitos de POO e Boas Práticas (Clean Code):** Código estruturado, limpo, fortemente tipado, com injeção de dependências e convenções de nomenclatura do .NET.
+- [x] **Separação de Responsabilidades:** Organização clara das camadas de acesso a dados (`Data`), modelos/DTOs/ViewModels (`Models`), regra de negócio e integração HTTP (`Services`), controle de requisições (`Controllers`) e interface gráfica (`Views`).
