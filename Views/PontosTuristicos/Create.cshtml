@@ -1,0 +1,84 @@
+@model PontoTuristicoApp.Models.PontoTuristico
+
+@{
+    ViewData["Title"] = "Cadastrar Ponto Turístico";
+    var estados = ViewBag.Estados as Dictionary<string, string>;
+}
+
+<div class="row justify-content-center my-4">
+    <div class="col-lg-8 col-md-10">
+        <div class="form-card">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="d-flex align-items-center justify-content-center rounded-circle text-white" style="width: 48px; height: 48px; background-color: var(--petroleo);">
+                    <i class="bi bi-geo-alt-fill fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0" style="color: var(--petroleo);">Novo Ponto Turístico</h3>
+                    <p class="text-muted small mb-0">Preencha as informações para adicionar um novo destino ao Explora.</p>
+                </div>
+            </div>
+
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nome" class="form-label">Nome do Ponto Turístico <span class="text-danger">*</span></label>
+                    <input asp-for="Nome" class="form-control" placeholder="Ex: Cristo Redentor, Cataratas do Iguaçu..." />
+                    <span asp-validation-for="Nome" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descricao" class="form-label">Descrição <span class="text-danger">*</span></label>
+                    <textarea asp-for="Descricao" class="form-control" rows="3" maxlength="100" placeholder="Breve resumo sobre o local (máximo de 100 caracteres)..."></textarea>
+                    <div class="form-text d-flex justify-content-between">
+                        <span>Apresentação curta e objetiva.</span>
+                        <span class="text-muted">Máx. 100 caracteres</span>
+                    </div>
+                    <span asp-validation-for="Descricao" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Localizacao" class="form-label">Localização / Endereço de Referência <span class="text-danger">*</span></label>
+                    <input asp-for="Localizacao" class="form-control" placeholder="Ex: Parque Nacional da Tijuca, Av. Paulista..." />
+                    <span asp-validation-for="Localizacao" class="text-danger small"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7 mb-3">
+                        <label asp-for="Cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
+                        <input asp-for="Cidade" class="form-control" placeholder="Ex: Rio de Janeiro, Foz do Iguaçu..." />
+                        <span asp-validation-for="Cidade" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+                        <label asp-for="Estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select asp-for="Estado" class="form-select">
+                            <option value="">Selecione o estado...</option>
+                            @if (estados != null)
+                            {
+                                foreach (var est in estados)
+                                {
+                                    <option value="@est.Key">@est.Value</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end align-items-center gap-3 mt-4 pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-light px-4 py-2 fw-semibold" style="border: 1px solid var(--border-subtle); color: var(--grafite);">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-coral-submit">
+                        <i class="bi bi-check-lg me-1"></i> Cadastrar Ponto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

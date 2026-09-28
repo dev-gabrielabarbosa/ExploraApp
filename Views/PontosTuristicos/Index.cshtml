@@ -1,0 +1,136 @@
+@model IEnumerable<PontoTuristicoApp.Models.PontoTuristico>
+
+@{
+    ViewData["Title"] = "Início";
+    int paginaAtual = ViewBag.PaginaAtual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 1;
+    string busca = ViewBag.Busca;
+}
+
+<!-- Hero Section com Nome, Slogan e Busca -->
+<div class="hero-banner shadow-sm">
+    <h1 class="hero-title">
+        <i class="bi bi-compass" style="color: var(--coral);"></i> Explora
+    </h1>
+    <p class="hero-slogan">Seu próximo lugar começa aqui.</p>
+
+    <div class="search-container">
+        <form asp-action="Index" method="get">
+            <div class="search-input-group">
+                <i class="bi bi-search text-muted me-2 fs-5"></i>
+                <input type="text" name="busca" value="@busca" placeholder="Buscar por nome do ponto, cidade, estado ou UF..." />
+                @if (!string.IsNullOrEmpty(busca))
+                {
+                    <a asp-action="Index" class="btn-clear" title="Limpar busca">
+                        <i class="bi bi-x-lg"></i> Limpar
+                    </a>
+                }
+                <button type="submit" class="btn-search">
+                    <span>Buscar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-0" style="color: var(--grafite);">
+            <i class="bi bi-pin-map-fill me-1" style="color: var(--coral);"></i> Pontos Turísticos Cadastrados
+        </h4>
+        @if (!string.IsNullOrEmpty(busca))
+        {
+            <div class="small text-muted mt-1">
+                Exibindo resultados para: <span class="fw-bold text-dark">"@busca"</span>
+            </div>
+        }
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-sm btn-coral-submit d-inline-flex align-items-center gap-1">
+            <i class="bi bi-plus-lg"></i> Novo Ponto
+        </a>
+    </div>
+</div>
+
+<!-- Tabela Moderna de Pontos Turísticos -->
+<div class="table-container mb-4">
+    <div class="table-responsive">
+        <table class="table table-custom table-hover align-middle">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 30%;">Nome</th>
+                    <th scope="col" style="width: 40%;">Localização</th>
+                    <th scope="col" style="width: 18%;">Data de Inclusão</th>
+                    <th scope="col" class="text-end" style="width: 12%;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold fs-6" style="color: var(--petroleo);">@item.Nome</div>
+                                <div class="small text-muted text-truncate" style="max-width: 320px;" title="@item.Descricao">
+                                    @item.Descricao
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge-state">@item.Estado</span>
+                                    <span>@item.Localizacao — <span class="fw-semibold">@item.Cidade</span></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-date">
+                                    <i class="bi bi-calendar3 me-1"></i> @item.DataInclusao.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-action-view" title="Ver Detalhes">
+                                    <i class="bi bi-eye"></i> Detalhes
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-geo-alt fs-1 d-block mb-2" style="color: var(--petroleo); opacity: 0.5;"></i>
+                            <div class="fw-bold fs-5">Nenhum ponto turístico encontrado</div>
+                            <div class="small">Tente pesquisar com outro termo ou cadastre um novo ponto turístico.</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Paginação -->
+@if (totalPaginas > 1)
+{
+    <nav aria-label="Navegação de página" class="my-4">
+        <ul class="pagination pagination-custom justify-content-center">
+            <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaAtual - 1)" asp-route-busca="@busca" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+            @for (int i = 1; i <= totalPaginas; i++)
+            {
+                <li class="page-item @(i == paginaAtual ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-busca="@busca">@i</a>
+                </li>
+            }
+            <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaAtual + 1)" asp-route-busca="@busca" aria-label="Próximo">
+                    Próximo <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

@@ -1,0 +1,102 @@
+@model PontoTuristicoApp.Models.PontoTuristico
+
+@{
+    ViewData["Title"] = "Detalhes - " + Model.Nome;
+}
+
+<div class="row justify-content-center my-4">
+    <div class="col-lg-8 col-md-10">
+        <div class="explora-card shadow-md">
+            <!-- Header do Card -->
+            <div class="detail-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge mb-2" style="background-color: var(--azul-claro); color: var(--petroleo); font-weight: 700;">
+                            Ponto Turístico
+                        </span>
+                        <h2 class="fw-bold mb-1 text-white">@Model.Nome</h2>
+                        <div class="text-white-50 small">
+                            <i class="bi bi-geo-alt me-1"></i> @Model.Cidade / @Model.Estado
+                        </div>
+                    </div>
+                    <div class="d-none d-sm-block text-white" style="font-size: 2.5rem; opacity: 0.85;">
+                        <i class="bi bi-compass"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corpo dos Detalhes -->
+            <div class="p-4 p-md-5">
+                <!-- Descrição em destaque -->
+                <div class="p-3 mb-4 rounded-3" style="background-color: var(--areia); border-left: 4px solid var(--coral);">
+                    <div class="fw-bold small text-muted text-uppercase mb-1">Sobre o local</div>
+                    <p class="fs-6 mb-0" style="color: var(--grafite); line-height: 1.5;">@Model.Descricao</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 rounded-3 text-white" style="background-color: var(--petroleo);">
+                                <i class="bi bi-geo-fill"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-semibold">Localização / Endereço</div>
+                                <div class="fw-bold" style="color: var(--grafite);">@Model.Localizacao</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 rounded-3" style="background-color: var(--azul-claro); color: var(--petroleo);">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-semibold">Cidade & Estado</div>
+                                <div class="fw-bold" style="color: var(--grafite);">
+                                    @Model.Cidade — <span class="badge-state">@Model.Estado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 rounded-3 text-white" style="background-color: var(--coral);">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-semibold">Data de Inclusão</div>
+                                <div class="fw-bold" style="color: var(--grafite);">
+                                    @Model.DataInclusao.ToString("dd/MM/yyyy 'às' HH:mm:ss")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 rounded-3 text-white" style="background-color: var(--grafite-muted);">
+                                <i class="bi bi-fingerprint"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-semibold">Identificador (ID)</div>
+                                <div class="small text-muted font-monospace">@Model.Id</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações do rodapé do card -->
+                <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-light px-4 py-2 fw-semibold" style="border: 1px solid var(--border-subtle); color: var(--grafite);">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar para a lista
+                    </a>
+                    <a asp-action="Create" class="btn btn-coral-submit">
+                        <i class="bi bi-plus-lg me-1"></i> Novo Cadastro
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

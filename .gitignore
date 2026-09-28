@@ -1,0 +1,50 @@
+# Build and Output Directories
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.log
+[Pp]ublish/
+
+# SQLite & Local Database Files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# IDE & Editor Configurations
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+
+# Secrets, Environment & Sensitive Files
+*.env
+*.env.*
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.pem
+*.key
+*.crt
+
+# OS Temporary Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Package & Cache Files
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
