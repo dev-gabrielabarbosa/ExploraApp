@@ -1,20 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PontoTuristicoApp.Data;
 using PontoTuristicoApp.Models;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using PontoTuristicoApp.Models.ViewModels;
+using PontoTuristicoApp.Services;
 
 namespace PontoTuristicoApp.Controllers
 {
     public class PontosTuristicosController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IIbgeService _ibgeService;
 
-        public PontosTuristicosController(AppDbContext context)
+        public PontosTuristicosController(AppDbContext context, IIbgeService ibgeService)
         {
             _context = context;
+            _ibgeService = ibgeService;
         }
 
         // GET: PontosTuristicos
@@ -26,23 +31,27 @@ namespace PontoTuristicoApp.Controllers
             if (!string.IsNullOrEmpty(busca))
             {
                 var termo = busca.Trim();
-                var estadosDict = ObterEstadosBrasileiros();
-                var ufsCorrespondentes = estadosDict
-                    .Where(e => e.Value.Contains(termo, StringComparison.OrdinalIgnoreCase) || e.Key.Equals(termo, StringComparison.OrdinalIgnoreCase))
-                    .Select(e => e.Key)
+
+                // Busca lista de estados do IBGE para permitir buscar por Sigla ou Nome
+                var ibgeEstados = await _ibgeService.ObterEstadosAsync();
+                var termosEstado = ibgeEstados
+                    .Where(e => e.Nome.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
+                                e.Sigla.Equals(termo, StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(e => new[] { e.Nome, e.Sigla })
+                    .Distinct()
                     .ToList();
 
-                query = query.Where(p => 
-                    p.Nome.Contains(termo) || 
-                    p.Cidade.Contains(termo) || 
-                    p.Estado.Contains(termo) || 
-                    ufsCorrespondentes.Contains(p.Estado) ||
-                    p.Descricao.Contains(termo) || 
+                query = query.Where(p =>
+                    p.Nome.Contains(termo) ||
+                    p.Cidade.Contains(termo) ||
+                    p.Estado.Contains(termo) ||
+                    termosEstado.Contains(p.Estado) ||
+                    p.Descricao.Contains(termo) ||
                     p.Localizacao.Contains(termo));
             }
 
             var totalItens = await query.CountAsync();
-            var totalPaginas = (int)System.Math.Ceiling(totalItens / (double)itensPorPagina);
+            var totalPaginas = (int)Math.Ceiling(totalItens / (double)itensPorPagina);
             if (pagina > totalPaginas && totalPaginas > 0) pagina = totalPaginas;
             if (pagina < 1) pagina = 1;
 
@@ -66,70 +75,94 @@ namespace PontoTuristicoApp.Controllers
 
             var ponto = await _context.PontosTuristicos
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
+
             if (ponto == null) return NotFound();
 
             return View(ponto);
         }
 
         // GET: PontosTuristicos/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Estados = ObterEstadosBrasileiros();
-            return View();
+            ViewBag.Estados = await _ibgeService.ObterEstadosAsync();
+            return View(new PontoTuristicoCreateViewModel());
+        }
+
+        // GET: PontosTuristicos/MunicipiosPorEstado/35
+        [HttpGet]
+        public async Task<IActionResult> MunicipiosPorEstado(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { erro = "ID do estado inválido." });
+            }
+
+            try
+            {
+                var municipios = await _ibgeService.ObterMunicipiosPorEstadoAsync(id);
+                if (municipios == null || !municipios.Any())
+                {
+                    return NotFound(new { erro = "Nenhum município encontrado para o estado informado." });
+                }
+
+                return Json(municipios.Select(m => new { id = m.Id, nome = m.Nome }));
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { erro = "Não foi possível carregar as cidades. Tente novamente." });
+            }
         }
 
         // POST: PontosTuristicos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Nome,Descricao,Localizacao,Cidade,Estado")] PontoTuristico pontoTuristico)
+        public async Task<IActionResult> Create(PontoTuristicoCreateViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                pontoTuristico.Id = Guid.NewGuid();
-                pontoTuristico.DataInclusao = DateTime.Now;
-                _context.Add(pontoTuristico);
-                await _context.SaveChangesAsync();
-                
-                TempData["MensagemSucesso"] = "Ponto turístico cadastrado com sucesso!";
-                return RedirectToAction(nameof(Index));
-            }
-            ViewBag.Estados = ObterEstadosBrasileiros();
-            return View(pontoTuristico);
-        }
+            var estados = await _ibgeService.ObterEstadosAsync();
 
-        private Dictionary<string, string> ObterEstadosBrasileiros()
-        {
-            return new Dictionary<string, string>
+            if (!ModelState.IsValid)
             {
-                { "AC", "AC — Acre" },
-                { "AL", "AL — Alagoas" },
-                { "AP", "AP — Amapá" },
-                { "AM", "AM — Amazonas" },
-                { "BA", "BA — Bahia" },
-                { "CE", "CE — Ceará" },
-                { "DF", "DF — Distrito Federal" },
-                { "ES", "ES — Espírito Santo" },
-                { "GO", "GO — Goiás" },
-                { "MA", "MA — Maranhão" },
-                { "MT", "MT — Mato Grosso" },
-                { "MS", "MS — Mato Grosso do Sul" },
-                { "MG", "MG — Minas Gerais" },
-                { "PA", "PA — Pará" },
-                { "PB", "PB — Paraíba" },
-                { "PR", "PR — Paraná" },
-                { "PE", "PE — Pernambuco" },
-                { "PI", "PI — Piauí" },
-                { "RJ", "RJ — Rio de Janeiro" },
-                { "RN", "RN — Rio Grande do Norte" },
-                { "RS", "RS — Rio Grande do Sul" },
-                { "RO", "RO — Rondônia" },
-                { "RR", "RR — Roraima" },
-                { "SC", "SC — Santa Catarina" },
-                { "SP", "SP — São Paulo" },
-                { "SE", "SE — Sergipe" },
-                { "TO", "TO — Tocantins" }
+                ViewBag.Estados = estados;
+                if (model.EstadoId.HasValue)
+                {
+                    ViewBag.Municipios = await _ibgeService.ObterMunicipiosPorEstadoAsync(model.EstadoId.Value);
+                }
+                return View(model);
+            }
+
+            var estadoSelecionado = estados.FirstOrDefault(e => e.Id == model.EstadoId!.Value);
+            if (estadoSelecionado == null)
+            {
+                ModelState.AddModelError("EstadoId", "O estado selecionado não foi encontrado na base do IBGE.");
+                ViewBag.Estados = estados;
+                return View(model);
+            }
+
+            var municipios = await _ibgeService.ObterMunicipiosPorEstadoAsync(model.EstadoId!.Value);
+            if (!municipios.Any(m => m.Nome.Equals(model.Cidade, StringComparison.OrdinalIgnoreCase)))
+            {
+                ModelState.AddModelError("Cidade", "A cidade selecionada não pertence ao estado selecionado.");
+                ViewBag.Estados = estados;
+                ViewBag.Municipios = municipios;
+                return View(model);
+            }
+
+            var pontoTuristico = new PontoTuristico
+            {
+                Id = Guid.NewGuid(),
+                Nome = model.Nome.Trim(),
+                Descricao = model.Descricao.Trim(),
+                Localizacao = model.Localizacao.Trim(),
+                Estado = estadoSelecionado.Nome,
+                Cidade = model.Cidade.Trim(),
+                DataInclusao = DateTime.Now
             };
+
+            _context.Add(pontoTuristico);
+            await _context.SaveChangesAsync();
+
+            TempData["MensagemSucesso"] = "Ponto turístico cadastrado com sucesso!";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

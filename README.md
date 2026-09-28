@@ -9,15 +9,27 @@ Desenvolvida como teste técnico para perfil de desenvolvedor júnior.
 - **ASP.NET Core MVC** (Arquitetura monolítica simples)
 - **Entity Framework Core**
 - **SQLite** (Banco de dados leve)
-- **HTML, CSS e Bootstrap 5**
+- **HTML, CSS, JavaScript e Bootstrap 5**
+- **API de Localidades do IBGE** (Integração HTTP via HttpClient)
 
 ## Decisões Técnicas
 
 - **Solução Monolítica:** Conforme solicitado, o frontend e o backend rodam no mesmo projeto, facilitando o entendimento e demonstrando domínio dos fundamentos web.
+- **Integração com IBGE:** A comunicação com a API do IBGE é centralizada na camada de serviço (`IbgeService`) utilizando `HttpClient` com injeção de dependência e cache em memória (`IMemoryCache`), prevenindo chamadas desnecessárias e garantindo performance e resiliência.
 - **SQLite:** Escolhido por não necessitar de instalação de um servidor SQL. O arquivo do banco (`pontosturisticos.db`) é criado localmente na pasta do projeto.
-- **Entity Framework Core:** Usado como ORM pela agilidade na implementação de consultas (`LINQ`) e fácil gerência do esquema do banco de dados (Migrations).
-- **Bootstrap 5:** Usado via CDN para entregar uma interface bonita, responsiva e limpa, sem gastar muito tempo escrevendo CSS do zero.
-- **Auto-Migration no Startup:** Para simplificar a execução por qualquer pessoa, o projeto aplica as *migrations* automaticamente no banco de dados SQLite assim que executado, sem a necessidade de comandos adicionais do EF Tools.
+- **Entity Framework Core:** Usado como ORM pela agilidade na implementação de consultas (`LINQ`) e fácil gerência do esquema do banco de dados.
+- **Bootstrap 5:** Usado via CDN para entregar uma interface bonita, responsiva e limpa.
+
+## Integração com a API do IBGE
+
+A aplicação consome a API oficial de Localidades do IBGE para carregar dinamicamente os Estados e os Municípios correspondentes:
+
+### Endpoints Utilizados:
+1. **Estados:** `https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome`
+2. **Municípios por Estado:** `https://servicodados.ibge.gov.br/api/v1/localidades/estados/{UF_ID}/municipios?orderBy=nome` (onde `{UF_ID}` é o ID numérico do Estado no IBGE, ex: `35` para SP).
+
+### Fluxo da Integração:
+`Estado selecionado no Dropdown` → `Captura do ID numérico da UF (ex: 35)` → `Requisição AJAX para Action MVC (/PontosTuristicos/MunicipiosPorEstado/35)` → `Backend consulta API do IBGE` → `Retorno em JSON` → `Dropdown de Cidade atualizado e habilitado via JavaScript`
 
 ## Pré-requisitos
 
@@ -35,8 +47,7 @@ cd PontoTuristicoApp
 
 - O projeto utiliza **SQLite**.
 - A string de conexão está no `appsettings.json` apontando para o arquivo local `pontosturisticos.db`.
-- O banco será criado automaticamente e as tabelas preparadas na primeira vez que você executar a aplicação. **Não é necessário rodar migrations manualmente**, o código em `Program.cs` já faz isso (`db.Database.Migrate()`).
-- Caso precise rodar manualmente as migrations: `dotnet ef database update`.
+- O banco será criado automaticamente e as tabelas preparadas na primeira vez que você executar a aplicação (`EnsureCreated()`).
 
 ## Como executar
 
@@ -53,19 +64,21 @@ Após executar, acesse no navegador: `http://localhost:5000` (ou a porta listada
 
 ## Funcionalidades
 
-- **Cadastro:** Inclusão de ponto turístico (nome, descrição, endereço, cidade e estado). Validações obrigatórias e limite de 100 caracteres na descrição.
-- **Listagem e Paginação:** Lista os cadastros ordenados pelos mais recentes. Limite de 5 itens por página para demonstrar a paginação facilmente.
-- **Busca/Filtro:** Campo de busca que filtra os registros por Nome, Descrição e Localização integrando perfeitamente com a paginação.
-- **Visualização de Detalhes:** Exibição completa de um ponto turístico específico através do botão "Detalhes".
-- **Navegação:** Menu superior fixo facilitando a transição entre Lista e Cadastro.
+- **Cadastro Dinâmico:** Inclusão de ponto turístico com seleção dinâmica de Estado e Cidade carregados via API do IBGE.
+- **Listagem e Paginação:** Lista os cadastros ordenados pelos mais recentes com paginação de 5 itens por página.
+- **Busca/Filtro:** Campo de busca que filtra por Nome, Cidade, Estado/UF, Descrição e Localização.
+- **Visualização de Detalhes:** Exibição completa das informações do ponto turístico.
+- **Tratamento de Erros e Resiliência:** Indicadores de carregamento, desabilitação temporária de campos e mensagens amigáveis em caso de falha da API externa.
 
 ## Critérios de Aceite Atendidos
 - [x] Aplicação Web em C# e ASP.NET Core MVC (Monolítica)
-- [x] SQLite configurado (Entity Framework)
-- [x] Cadastro de pontos turísticos (Descrição máx. 100 caracteres e Estado via Dropdown)
-- [x] Listagem com ordenação decrescente por data e paginação
-- [x] Busca (nome, descrição e localização)
-- [x] Validações claras (Backend e Frontend via Unobtrusive JS)
-- [x] Interface limpa e responsiva (Bootstrap)
-- [x] Estrutura simples para nível Júnior
-- [x] Versionamento Git (Mínimo de 2 commits)
+- [x] Estados carregados dinamicamente via API do IBGE
+- [x] Cidades carregadas dinamicamente com base no ID numérico do Estado
+- [x] Dropdown de Cidade inicialmente desabilitado e habilitado após seleção do Estado
+- [x] Ordenação alfabética das cidades via parâmetro `orderBy=nome`
+- [x] Tratamento de erros e mensagem amigável em caso de falha de comunicação
+- [x] Indicador visual de carregamento ("Carregando cidades...")
+- [x] Validação obrigatória de Estado e Cidade no frontend e backend
+- [x] SQLite configurado via Entity Framework Core
+- [x] Listagem, ordenação, busca e paginação mantidos e operacionais
+- [x] README atualizado com os endpoints e fluxo do IBGE

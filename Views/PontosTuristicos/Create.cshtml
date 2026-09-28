@@ -1,8 +1,9 @@
-@model PontoTuristicoApp.Models.PontoTuristico
+@model PontoTuristicoApp.Models.ViewModels.PontoTuristicoCreateViewModel
 
 @{
     ViewData["Title"] = "Cadastrar Ponto Turístico";
-    var estados = ViewBag.Estados as Dictionary<string, string>;
+    var estados = ViewBag.Estados as IEnumerable<PontoTuristicoApp.Models.DTOs.EstadoIbgeDto>;
+    var municipios = ViewBag.Municipios as IEnumerable<PontoTuristicoApp.Models.DTOs.MunicipioIbgeDto>;
 }
 
 <div class="row justify-content-center my-4">
@@ -44,25 +45,52 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-7 mb-3">
-                        <label asp-for="Cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
-                        <input asp-for="Cidade" class="form-control" placeholder="Ex: Rio de Janeiro, Foz do Iguaçu..." />
-                        <span asp-validation-for="Cidade" class="text-danger small"></span>
-                    </div>
-
                     <div class="col-md-5 mb-3">
-                        <label asp-for="Estado" class="form-label">Estado <span class="text-danger">*</span></label>
-                        <select asp-for="Estado" class="form-select">
-                            <option value="">Selecione o estado...</option>
+                        <label asp-for="EstadoId" class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select asp-for="EstadoId" class="form-select" id="EstadoId">
+                            <option value="">Selecione um estado...</option>
                             @if (estados != null)
                             {
                                 foreach (var est in estados)
                                 {
-                                    <option value="@est.Key">@est.Value</option>
+                                    <option value="@est.Id">@est.Nome (@est.Sigla)</option>
                                 }
                             }
                         </select>
-                        <span asp-validation-for="Estado" class="text-danger small"></span>
+                        <span asp-validation-for="EstadoId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-7 mb-3">
+                        <label asp-for="Cidade" class="form-label">Cidade <span class="text-danger">*</span></label>
+                        <select asp-for="Cidade" class="form-select" id="Cidade" disabled="@(municipios == null ? "disabled" : null)">
+                            @if (municipios != null && municipios.Any())
+                            {
+                                <option value="">Selecione uma cidade...</option>
+                                foreach (var mun in municipios)
+                                {
+                                    if (mun.Nome == Model?.Cidade)
+                                    {
+                                        <option value="@mun.Nome" selected="selected">@mun.Nome</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@mun.Nome">@mun.Nome</option>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <option value="">Selecione um estado primeiro</option>
+                            }
+                        </select>
+                        <div id="cidadeLoading" class="form-text text-muted d-none align-items-center gap-1 mt-1">
+                            <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                            <span>Carregando cidades...</span>
+                        </div>
+                        <div id="cidadeError" class="text-danger small mt-1 d-none">
+                            Não foi possível carregar as cidades. Tente novamente.
+                        </div>
+                        <span asp-validation-for="Cidade" class="text-danger small"></span>
                     </div>
                 </div>
 
@@ -81,4 +109,83 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const estadoSelect = document.getElementById('EstadoId');
+            const cidadeSelect = document.getElementById('Cidade');
+            const loadingDiv = document.getElementById('cidadeLoading');
+            const errorDiv = document.getElementById('cidadeError');
+
+            estadoSelect.addEventListener('change', function () {
+                const estadoId = this.value;
+
+                // Reset do estado de erro e opções de cidade
+                errorDiv.classList.add('d-none');
+                cidadeSelect.replaceChildren();
+
+                if (!estadoId) {
+                    cidadeSelect.disabled = true;
+                    loadingDiv.classList.add('d-none');
+                    loadingDiv.classList.remove('d-flex');
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Selecione um estado primeiro';
+                    cidadeSelect.appendChild(defaultOption);
+                    return;
+                }
+
+                // Exibe loading e desabilita temporariamente o dropdown de cidade
+                cidadeSelect.disabled = true;
+                loadingDiv.classList.remove('d-none');
+                loadingDiv.classList.add('d-flex');
+
+                const loadingOption = document.createElement('option');
+                loadingOption.value = '';
+                loadingOption.textContent = 'Carregando cidades...';
+                cidadeSelect.appendChild(loadingOption);
+
+                fetch('/PontosTuristicos/MunicipiosPorEstado/' + encodeURIComponent(estadoId))
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Erro ao buscar municípios');
+                        }
+                        return response.json();
+                    })
+                    .then(function (municipios) {
+                        cidadeSelect.replaceChildren();
+
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'Selecione uma cidade...';
+                        cidadeSelect.appendChild(defaultOption);
+
+                        if (Array.isArray(municipios) && municipios.length > 0) {
+                            municipios.forEach(function (mun) {
+                                const option = document.createElement('option');
+                                option.value = mun.nome;
+                                option.textContent = mun.nome;
+                                cidadeSelect.appendChild(option);
+                            });
+                            cidadeSelect.disabled = false;
+                        } else {
+                            defaultOption.textContent = 'Nenhum município encontrado';
+                        }
+                    })
+                    .catch(function (error) {
+                        cidadeSelect.replaceChildren();
+                        const errorOption = document.createElement('option');
+                        errorOption.value = '';
+                        errorOption.textContent = 'Não foi possível carregar as cidades';
+                        cidadeSelect.appendChild(errorOption);
+                        cidadeSelect.disabled = true;
+                        errorDiv.classList.remove('d-none');
+                    })
+                    .finally(function () {
+                        loadingDiv.classList.add('d-none');
+                        loadingDiv.classList.remove('d-flex');
+                    });
+            });
+        });
+    </script>
 }
